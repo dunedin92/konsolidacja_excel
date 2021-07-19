@@ -88,28 +88,51 @@ def write_object_to_excel(bom_path, object_element, sheet_name):
 
 
 def write_list_to_excel(bom_path, object_list, sheets_names):
-    print("\n\n Otrzymano liste objektów.")
+    print("\n\n - Otrzymano liste objektów.")
+
+    wb = openpyxl.load_workbook(bom_path)
+    type(wb)
+
     if len(object_list) > 0:
         if object_list[0].tch.upper() == "C":
             sheet_name = sheets_names[0]
-        elif object_list[0].tch.upper() == "F":
+        elif object_list[0].tch.upper() == "TWORZYWA SZTUCZNE":
             sheet_name = sheets_names[1]
-        elif object_list[0].tch.upper() == "S":
+        elif object_list[0].tch.upper() == "F":
             sheet_name = sheets_names[2]
-        elif "DRUK" in object_list[0].tch.upper() and "3D" in object_list[0].tch.upper():
+        elif object_list[0].tch.upper() == "S":
             sheet_name = sheets_names[3]
-        elif object_list[0].tch.upper() == "Z":
+        elif "DRUK" in object_list[0].tch.upper() and "3D" in object_list[0].tch.upper():
             sheet_name = sheets_names[4]
-        else:
+        elif object_list[0].tch.upper() == "Z":
             sheet_name = sheets_names[5]
+        else:
+            sheet_name = sheets_names[6]
 
-        print("liste obiektów wpisujemy do arkusza: ", sheet_name)
+        print(" - liste obiektów wpisujemy do arkusza ==>", sheet_name)
 
         for element in object_list:
             # zamiast nowej funkcji wystarczy przenieść jej zawartosć tutaj tak zeby nie trzeba bylo za kazdym razem otwierac excela tylko za jednym razem wysłać
             # przyspieszy to dzialanie programu,
             # na upartego do funkcji write_list_to_excel dac argument otwarty typu lista i wpisać do niego wszystkie listy od razu i w tej pętli te listy wpisać do excela
-            write_object_to_excel(bom_path, element, sheet_name)
+            sheet = wb.get_sheet_by_name(sheet_name)
+            object_value_list = element.values_to_list()
+            max_row = sheet.max_row
+
+            if sheet.max_row == 1:
+                print(sheet.cell(row=max_row, column=1).value)
+                sheet.cell(row=max_row + 1, column=1).value = 1
+            else:
+                last_value = sheet.cell(row=max_row, column=1).value
+                print(last_value, " - ", sheet.cell(row=max_row, column=2).value)
+
+                sheet.cell(row=max_row + 1, column=1).value = int(last_value) + 1
+
+            for j in range(len(object_value_list)):
+                sheet.cell(row=max_row + 1, column=j + 2).value = object_value_list[j]
+
+        wb.save(bom_path)
+        wb.close()
 
     else:
         print("Otrzymana lista jest pusta.")
@@ -118,7 +141,7 @@ def write_list_to_excel(bom_path, object_list, sheets_names):
 
 
 def consolidation_and_segregation(bom_path):
-    sheets_name = ["Blachy", "Frezowanie toczenie", "Spawane", "DRUK 3D", "Z-normalia", "Zakupowe-reszta"]
+    sheets_name = ["Blachy", "PC, PLEXI, itp.", "Frezowanie_toczenie", "Spawane", "DRUK 3D", "Z-normalia", "Zakupowe-reszta"]
     title_location = {"part_number": 0, "qty_total": 0, "description": 0, "description2": 0, "rysunek": 0, "tch": 0, "producent": 0,
                       "kod_producenta": 0, "kolor": 0}
     title_names = ["Nr"]
@@ -165,9 +188,10 @@ def consolidation_and_segregation(bom_path):
     object_list = []
     print(sheet.max_row)
     for row_number in range(2, sheet.max_row + 1):
-        print(row_number)
+        print(row_number, "-- ", sheet.cell(row=row_number, column=title_location["part_number"]).value)
 #        input("nacisnij klawisz aby przejsc dalej.")
         if "ZŁOŻENIOWY" not in sheet.cell(row=row_number, column=title_location["rysunek"]).value.upper():
+
             part_number = sheet.cell(row=row_number, column=title_location["part_number"]).value.lstrip()
             print(part_number)
             qty_total = int(sheet.cell(row=row_number, column=title_location["qty_total"]).value)
@@ -182,24 +206,24 @@ def consolidation_and_segregation(bom_path):
 # sprawdzenie czy obiekt o takim samym PART_NUMBER jus istnieje w tablicy
 # jak istnieje stosujemy metode add_to_qty_total ==> dodaje do istniejącego obiektu qty total obecnego (konsolidacja)
 # jak nie istnieje to dodajemy element do listy obiektów
-        if len(object_list) >= 1:
-            status = False
-            for element in object_list:
-                if element.part_number == part_number:
-                    print("Obiekt o takim numerze części już zostal dodany")
-                    element.add_to_qty_total(qty_total)
-                    status = True
-                    break
-                else:
-                    status = False
-            if not status:
-                print("dodajemy objekt do listy")
-                a.print_values()
-                object_list.append(a)
+            if len(object_list) >= 1:
+                status = False
+                for element in object_list:
+                    if element.part_number == part_number:
+                        print("Obiekt o takim numerze części już zostal dodany")
+                        element.add_to_qty_total(qty_total)
+                        status = True
+                        break
+                    else:
+                        status = False
+                if not status:
+                    print("dodajemy objekt do listy")
+                    a.print_values()
+                    object_list.append(a)
 
-        else:
-            print("dodajemy pierwszy obiekt do listy")
-            object_list.append(a)
+            else:
+                print("dodajemy pierwszy obiekt do listy")
+                object_list.append(a)
 
     wb.save(bom_path)
     wb.close()
@@ -210,6 +234,7 @@ def consolidation_and_segregation(bom_path):
     object_list_druk3d = []
     object_list_z_normalia = []
     object_list_zakupowe_reszta = []
+    object_list_tworzywa_sztuczne = []
     print("\n\n segregujemy obiekty zgodnie z tch:\n\n")
     for i in object_list:
         i.print_values()
@@ -228,11 +253,15 @@ def consolidation_and_segregation(bom_path):
         elif i.tch.upper() == "Z":
             print("wrzucamy do Z")
             object_list_z_normalia.append(i)
+        elif i.tch.upper() == "TWORZYWA SZTUCZNE":
+            print("wrzucamy do TWORZYWA SZTUCZNE")
+            object_list_tworzywa_sztuczne.append(i)
         else:
             print("wrzucamy do zakupowe reszta")
             object_list_zakupowe_reszta.append(i)
 
     write_list_to_excel(bom_path, object_list_c, sheets_name)
+    write_list_to_excel(bom_path, object_list_tworzywa_sztuczne, sheets_name)
     write_list_to_excel(bom_path, object_list_f, sheets_name)
     write_list_to_excel(bom_path, object_list_s, sheets_name)
     write_list_to_excel(bom_path, object_list_druk3d, sheets_name)
