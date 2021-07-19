@@ -60,33 +60,6 @@ def worksheet_maker(bom_path, sheet_name, titles):
     wb.close()
 
 
-def write_object_to_excel(bom_path, object_element, sheet_name):
-
-    wb = openpyxl.load_workbook(bom_path)
-    type(wb)
-
-    sheet = wb.get_sheet_by_name(sheet_name)
-    object_value_list = object_element.values_to_list()
-    max_row = sheet.max_row
-
-    if sheet.max_row == 1:
-        print("ilosć wierszy to 1, wartość 1 komorki tego wiersza to:")
-        print(sheet.cell(row=max_row, column=1).value)
-        sheet.cell(row=max_row + 1, column=1).value = 1
-        print("wartość dodanej drugiej komórki to: ", sheet.cell(row=max_row+1, column=1).value)
-    else:
-        last_value = sheet.cell(row=max_row, column=1).value
-        print(last_value)
-
-        sheet.cell(row=max_row+1, column=1).value = int(last_value) + 1
-
-    for j in range(len(object_value_list)):
-        sheet.cell(row=max_row+1, column=j+2).value = object_value_list[j]
-
-    wb.save(bom_path)
-    wb.close()
-
-
 def write_list_to_excel(bom_path, object_list, sheets_names):
     print("\n\n - Otrzymano liste objektów.")
 
