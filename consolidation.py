@@ -1,4 +1,6 @@
 import openpyxl
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.table import Table, TableStyleInfo
 
 
 class Part:
@@ -69,18 +71,25 @@ def write_list_to_excel(bom_path, object_list, sheets_names):
     if len(object_list) > 0:
         if object_list[0].tch.upper() == "C":
             sheet_name = sheets_names[0]
+            table_name = sheets_names[0]
         elif object_list[0].tch.upper() == "TWORZYWA SZTUCZNE":
             sheet_name = sheets_names[1]
+            table_name = sheets_names[1]
         elif object_list[0].tch.upper() == "F":
             sheet_name = sheets_names[2]
+            table_name = sheets_names[2]
         elif object_list[0].tch.upper() == "S":
             sheet_name = sheets_names[3]
+            table_name = sheets_names[3]
         elif "DRUK" in object_list[0].tch.upper() and "3D" in object_list[0].tch.upper():
             sheet_name = sheets_names[4]
+            table_name = sheets_names[4]
         elif object_list[0].tch.upper() == "Z":
             sheet_name = sheets_names[5]
+            table_name = sheets_names[5]
         else:
             sheet_name = sheets_names[6]
+            table_name = sheets_names[6]
 
         print(" - liste obiektów wpisujemy do arkusza ==>", sheet_name)
 
@@ -104,6 +113,12 @@ def write_list_to_excel(bom_path, object_list, sheets_names):
             for j in range(len(object_value_list)):
                 sheet.cell(row=max_row + 1, column=j + 2).value = object_value_list[j]
 
+        print("==> Tworzenie tabeli z całego zakresu danych arkusza.")
+        table = Table(displayName=table_name, ref="A1:" + get_column_letter(sheet.max_column) + str(sheet.max_row))
+        sheet.add_table(table)
+        style = TableStyleInfo(name="TableStyleMedium2", showFirstColumn=False,
+                               showLastColumn=False, showRowStripes=True, showColumnStripes=False)
+        table.tableStyleInfo = style
         wb.save(bom_path)
         wb.close()
 
