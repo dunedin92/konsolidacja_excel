@@ -5,6 +5,17 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 def empty_rows_delete(bom_path):
     wb = openpyxl.load_workbook(bom_path)
     type(wb)
+
+    status = False
+    while not status:
+        try:
+            wb.save(bom_path)
+            status = True
+        except PermissionError:
+            print("plik jest juz otwarty, zamknij go i kliknij dowolny przycisk")
+            input("Naciśnij dowolny klawisz aby kontynuować.")
+
+
     arkusze = wb.sheetnames
     sheet = wb[arkusze[0]]
     max_row = sheet.max_row

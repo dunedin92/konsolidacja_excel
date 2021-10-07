@@ -34,15 +34,6 @@ def worksheet_maker(bom_path, sheet_name, titles):
     wb = openpyxl.load_workbook(bom_path)
     type(wb)
 
-    status = False
-    while not status:
-        try:
-            wb.save(bom_path)
-            status = True
-        except PermissionError:
-            print("plik jest juz otwarty, zamknij go i kliknij dowolny przycisk")
-            input("Naciśnij dowolny klawisz aby kontynuować.")
-
     arkusze = wb.sheetnames
     if sheet_name in arkusze:
         sheet = wb.get_sheet_by_name(sheet_name)
